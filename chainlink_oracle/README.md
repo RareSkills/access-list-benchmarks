@@ -28,7 +28,8 @@ After setup is done, run the following command:
 REPORT_GAS=true npx hardhat test
 ```
 ### Expected Output:
-screenshot
+<img width="767" alt="Screenshot 2024-06-25 at 09 25 02" src="https://github.com/RareSkills/access-list-benchmarks/assets/36541366/b9949033-c465-45ac-8486-765c09953cb2">
+
 
 The blue box is the gas cost with access list, while the red box is the gas cost without access list.
 
