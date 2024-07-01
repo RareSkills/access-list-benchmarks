@@ -2,18 +2,22 @@ const { ethers, upgrades } = require("hardhat");
 const { expect } = require("chai");
 
 describe("Access list tx on proxies VS not using them", function () {
-  let counterImpl, beacon, beaconProxy;
+  let counterProxyInstance;
 
   before(async () => {
-    counterImpl = await ethers.getContractFactory("Counter");
+    const [owner] = await ethers.getSigners();
 
-    beacon = await (
-      await upgrades.deployBeacon(counterImpl)
-    ).waitForDeployment();
+    const counterImpl = await ethers.getContractFactory("Counter");
+    counterProxyInstance = await upgrades.deployProxy(
+      counterImpl,
+      [owner.address, 4],
+      {
+        initializer: "initialize",
+        kind: "uups",
+      },
+    );
 
-    beaconProxy = await (
-      await upgrades.deployBeaconProxy(beacon, counterImpl, [2])
-    ).waitForDeployment();
+    await counterProxyInstance.waitForDeployment();
   });
 
   it("can increment", async function () {
@@ -23,12 +27,11 @@ describe("Access list tx on proxies VS not using them", function () {
       await ethers.deployContract("CounterCaller")
     ).getAddress();
 
-    const beaconAddress = await beacon.getAddress();
-    const beaconProxyAddress = await beaconProxy.getAddress();
+    const counterProxyAddress = await counterProxyInstance.getAddress();
 
     const data =
       ethers.id("callIncrement(address)").substring(0, 10).padEnd(34, "0") +
-      beaconProxyAddress.substring(2);
+      counterProxyAddress.substring(2);
 
     // TX with access list - START
     const tx1 = {
@@ -39,15 +42,10 @@ describe("Access list tx on proxies VS not using them", function () {
       type: 1,
       accessList: [
         {
-          address: beaconProxyAddress,
+          address: counterProxyAddress,
           storageKeys: [
             "0x0000000000000000000000000000000000000000000000000000000000000000", // count storage slot
-          ],
-        },
-        {
-          address: beaconAddress,
-          storageKeys: [
-            "0x0000000000000000000000000000000000000000000000000000000000000001", // implementation address storage slot
+            "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc", // implementation address storage slot
           ],
         },
       ],
@@ -72,6 +70,6 @@ describe("Access list tx on proxies VS not using them", function () {
     // Assert tx1.gasUsed() < tx2.gasUsed()
     expect(tx1Receipt.gasUsed).to.lt(tx2Receipt.gasUsed);
 
-    expect(await beaconProxy.getCount()).to.equal(4);
+    expect(await counterProxyInstance.count()).to.equal(6);
   });
 });
