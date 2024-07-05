@@ -2,16 +2,18 @@ const { ethers } = require("hardhat");
 const { expect } = require("chai");
 
 describe("ERC20 Transfer", function () {
-  let rareCallerInstance, rareVaultInstance;
+  let rareCallerInstance, rareCallerAddress, rareVaultInstance;
 
   before(async () => {
-    rareVaultInstance = await ethers.deployContract("RareVault");
-    rareCallerInstance = await ethers.deployContract("RareCaller");
+    rareCallerInstance = await ethers.deployContract("RareVaultCaller");
+    rareCallerAddress = await rareCallerInstance.getAddress();
+
+    const rareVault = await ethers.getContractFactory("RareVault");
+    rareVaultInstance = await rareVault.deploy(rareCallerAddress);
   });
 
   it("can get transfer tokens", async function () {
     const rareVaultAddress = await rareVaultInstance.getAddress();
-    const rareCallerAddress = await rareCallerInstance.getAddress();
 
     // Changes this contract token balance from zero to nonzero
     rareCallerInstance.pre_transferToken(rareVaultAddress);
@@ -34,7 +36,9 @@ describe("ERC20 Transfer", function () {
         {
           address: rareVaultAddress,
           storageKeys: [
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000000000000000", // to storage slot
+            "0x0000000000000000000000000000000000000000000000000000000000000001", // from storage slot
+            "0x0000000000000000000000000000000000000000000000000000000000000002", // rareToken storage slot
           ],
         },
       ],

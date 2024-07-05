@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 // 1.
 contract RareToken is ERC20 {
     constructor() ERC20("RareToken", "RRT") {
-        _mint(msg.sender, 10);
+        _mint(msg.sender, 100);
     }
 
     function mint(address recipient) external {
@@ -16,19 +16,26 @@ contract RareToken is ERC20 {
 
 // 2.
 contract RareVault {
+    address public to;
+    address public from = address(this);
+
     RareToken public rareToken;
 
-    constructor() {
+    constructor(address _rareVaultCaller) {
         rareToken = new RareToken();
+        to = _rareVaultCaller;
     }
 
     function transferToken() external {
-        RareToken(rareToken).transfer(msg.sender, 1);
+        RareToken _rareToken = RareToken(rareToken);
+        require(_rareToken.balanceOf(from) > 0, "Insufficient Vault Balance.");
+
+        _rareToken.transfer(to, 10);
     }
 }
 
 // 3.
-contract RareCaller {
+contract RareVaultCaller {
     function call_transferToken(address _rareVault) external {
         RareVault(_rareVault).transferToken();
     }

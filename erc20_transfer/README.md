@@ -1,6 +1,6 @@
 # Gas Benchmarks: Access List Transactions On ERC20 Token Transfer.
 
-This is a repository benchmarking access list transactions on ERC20 token transfer (cross-contract call) vs not using them. The access list transaction saves gas by correctly pre-warming the token address needed for the call. Follow the commands below to run the benchmarks locally.
+This is a repository benchmarking access list transactions on ERC20 token transfer (cross-contract call) vs not using them. The access list transaction saves gas by correctly pre-warming the `token`, `from` and `to` address needed for the call. Follow the commands below to run the benchmarks locally.
 
 ## Setup
     
