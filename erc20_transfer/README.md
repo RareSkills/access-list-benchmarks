@@ -17,6 +17,7 @@ After setup is done, run the following command:
 REPORT_GAS=true npx hardhat test
 ```
 ### Expected Output:
+<img width="855" alt="Screenshot 2024-07-06 at 23 13 53" src="https://github.com/RareSkills/access-list-benchmarks/assets/36541366/d041c716-f732-482f-8a91-4adb1937017c">
 
 
 
