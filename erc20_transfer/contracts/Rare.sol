@@ -16,21 +16,14 @@ contract RareToken is ERC20 {
 
 // 2.
 contract RareVault {
-    address public to;
-    address public from = address(this);
-
     RareToken public rareToken;
 
-    constructor(address _rareVaultCaller) {
+    constructor() {
         rareToken = new RareToken();
-        to = _rareVaultCaller;
     }
 
     function transferToken() external {
-        RareToken _rareToken = RareToken(rareToken);
-        require(_rareToken.balanceOf(from) > 0, "Insufficient Vault Balance.");
-
-        _rareToken.transfer(to, 10);
+        RareToken(rareToken).transfer(msg.sender, 10);
     }
 }
 

@@ -8,12 +8,24 @@ describe("ERC20 Transfer", function () {
     rareCallerInstance = await ethers.deployContract("RareVaultCaller");
     rareCallerAddress = await rareCallerInstance.getAddress();
 
-    const rareVault = await ethers.getContractFactory("RareVault");
-    rareVaultInstance = await rareVault.deploy(rareCallerAddress);
+    rareVaultInstance = await ethers.deployContract("RareVault");
   });
 
   it("can get transfer tokens", async function () {
     const rareVaultAddress = await rareVaultInstance.getAddress();
+    const rareTokenAddress = await rareVaultInstance.rareToken();
+
+    // Get storage slot for `from` balance
+    const fromBalanceslotHash = ethers.solidityPackedKeccak256(
+      ["bytes32", "uint256"],
+      [`0x000000000000000000000000${rareVaultAddress.substring(2)}`, 0],
+    );
+
+    // Get storage slot for `to` balance
+    const toBalanceslotHash = ethers.solidityPackedKeccak256(
+      ["bytes32", "uint256"],
+      [`0x000000000000000000000000${rareCallerAddress.substring(2)}`, 0],
+    );
 
     // Changes this contract token balance from zero to nonzero
     rareCallerInstance.pre_transferToken(rareVaultAddress);
@@ -34,11 +46,16 @@ describe("ERC20 Transfer", function () {
       type: 1,
       accessList: [
         {
+          address: rareTokenAddress,
+          storageKeys: [
+            fromBalanceslotHash, // `from` balance storage slot
+            toBalanceslotHash, // `to` balance storage slot
+          ],
+        },
+        {
           address: rareVaultAddress,
           storageKeys: [
-            "0x0000000000000000000000000000000000000000000000000000000000000000", // to storage slot
-            "0x0000000000000000000000000000000000000000000000000000000000000001", // from storage slot
-            "0x0000000000000000000000000000000000000000000000000000000000000002", // rareToken storage slot
+            "0x0000000000000000000000000000000000000000000000000000000000000000", // rareToken storage slot
           ],
         },
       ],
